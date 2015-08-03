@@ -29,7 +29,8 @@ struct Error : public std::runtime_error {
 }  // namespace dmlc
 
 #if DMLC_USE_CXX11
-#define DMLC_THROW_EXCEPTION noexcept(false)
+#define DMLC_THROW_EXCEPTION 
+//noexcept(false)
 #else
 #define DMLC_THROW_EXCEPTION
 #endif
