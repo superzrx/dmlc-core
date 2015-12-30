@@ -8,10 +8,15 @@ export CPLUS_INCLUDE_PATH=${CPLUS_INCLUDE_PATH}:${CACHE_PREFIX}/include
 export C_INCLUDE_PATH=${C_INCLUDE_PATH}:${CACHE_PREFIX}/include
 export LIBRARY_PATH=${LIBRARY_PATH}:${CACHE_PREFIX}/lib
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CACHE_PREFIX}/lib
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${CACHE_PREFIX}/lib
 
 alias make="make -j4"
 
 # setup the cache prefix folder
+if [ ! -d ${HOME}/.cache ]; then
+    mkdir ${HOME}/.cache
+fi
+
 if [ ! -d ${CACHE_PREFIX} ]; then
     mkdir ${CACHE_PREFIX}
 fi
@@ -30,6 +35,6 @@ if [ ! -z "$NVCC_PREFIX" ]; then
     export PATH=${PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/bin
     export CPLUS_INCLUDE_PATH=${CPLUS_INCLUDE_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/include
     export C_INCLUDE_PATH=${C_INCLUDE_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/include
-    export LIBRARY_PATH=${LIBRARY_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/lib64
-    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/lib64
+    export LIBRARY_PATH=${LIBRARY_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/lib64:${NVCC_PREFIX}/usr/lib/x86_64-linux-gnu
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${NVCC_PREFIX}/usr/local/cuda-7.0/lib64:${NVCC_PREFIX}/usr/lib/x86_64-linux-gnu
 fi

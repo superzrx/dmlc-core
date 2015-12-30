@@ -82,7 +82,7 @@ struct RowBlockContainer {
     label.push_back(row.label);
     weight.push_back(row.weight);
     for (size_t i = 0; i < row.length; ++i) {
-      CHECK(row.index[i] < std::numeric_limits<IndexType>::max())
+      CHECK_LE(row.index[i], std::numeric_limits<IndexType>::max())
           << "index exceed numeric bound of current type";
       IndexType findex = static_cast<IndexType>(row.index[i]);
       index.push_back(findex);
@@ -137,8 +137,10 @@ template<typename IndexType>
 inline RowBlock<IndexType>
 RowBlockContainer<IndexType>::GetBlock(void) const {
   // consistency check
-  CHECK(label.size() + 1 == offset.size());
-  CHECK(offset.back() == index.size());
+  if (label.size()) {
+    CHECK_EQ(label.size() + 1, offset.size());
+  }
+  CHECK_EQ(offset.back(), index.size());
   CHECK(offset.back() == value.size() || value.size() == 0);
   RowBlock<IndexType> data;
   data.size = offset.size() - 1;
@@ -154,16 +156,20 @@ inline void
 RowBlockContainer<IndexType>::Save(Stream *fo) const {
   fo->Write(offset);
   fo->Write(label);
+  fo->Write(weight);
   fo->Write(index);
   fo->Write(value);
+  fo->Write(&max_index, sizeof(IndexType));
 }
 template<typename IndexType>
 inline bool
 RowBlockContainer<IndexType>::Load(Stream *fi) {
   if (!fi->Read(&offset)) return false;
   CHECK(fi->Read(&label)) << "Bad RowBlock format";
-  CHECK(fi->Read(&value)) << "Bad RowBlock format";
+  CHECK(fi->Read(&weight)) << "Bad RowBlock format";
   CHECK(fi->Read(&index)) << "Bad RowBlock format";
+  CHECK(fi->Read(&value)) << "Bad RowBlock format";
+  CHECK(fi->Read(&max_index, sizeof(IndexType))) << "Bad RowBlock format";
   return true;
 }
 }  // namespace data

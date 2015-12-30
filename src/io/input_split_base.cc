@@ -1,5 +1,4 @@
 // Copyright by Contributors
-#define _CRT_SECURE_NO_WARNINGS
 #include <dmlc/logging.h>
 #include <algorithm>
 #include "./line_split.h"
@@ -71,7 +70,7 @@ void InputSplitBase::BeforeFirst(void) {
 }
 
 InputSplitBase::~InputSplitBase(void) {
-  if (fs_ != NULL) delete fs_;
+  delete fs_;
   // no need to delete filesystem, it was singleton
 }
 
@@ -103,6 +102,7 @@ void InputSplitBase::InitInputFileInfo(const char *uri) {
 }
 
 size_t InputSplitBase::Read(void *ptr, size_t size) {
+  if (offset_begin_ >= offset_end_) return 0;
   if (offset_curr_ +  size > offset_end_) {
     size = offset_end_ - offset_curr_;
   }

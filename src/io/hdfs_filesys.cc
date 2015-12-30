@@ -89,8 +89,7 @@ class HDFSStream : public SeekStream {
   hdfsFile fp_;
 };
 
-HDFSFileSystem::HDFSFileSystem(void) {
-  namenode_ = "default";
+HDFSFileSystem::HDFSFileSystem(const std::string &namenode): namenode_(namenode) {
   fs_ = hdfsConnect(namenode_.c_str(), 0);
   if (fs_ == NULL) {
     LOG(FATAL) << "Failed to load HDFS-configuration:";
@@ -108,6 +107,20 @@ HDFSFileSystem::~HDFSFileSystem(void) {
       LOG(FATAL) << "HDFSStream.hdfsDisconnect Error:" << strerror(errsv);
     }
   }
+}
+
+void HDFSFileSystem::ResetNamenode(const std::string &namenode) {
+  if (hdfsDisconnect(fs_) != 0) {
+    int errsv = errno;
+    LOG(FATAL) << "HDFSStream.hdfsDisconnect Error: " << strerror(errsv);
+  }
+
+  namenode_ = namenode;
+  fs_ = hdfsConnect(namenode_.c_str(), 0);
+  if (fs_ == NULL) {
+    LOG(FATAL) << "Failed to load HDFS-configuration: " << namenode_.c_str();
+  }
+  ref_counter_[0] = 1;
 }
 
 inline FileInfo ConvertPathInfo(const URI &path, const hdfsFileInfo &info) {
@@ -167,7 +180,7 @@ SeekStream *HDFSFileSystem::Open(const URI &path,
     ref_counter_[0] += 1;
     return new HDFSStream(fs_, ref_counter_, fp_);
   }
-  CHECK(allow_null) << " HDFSFileSystem: fail to open " << path.str();
+  CHECK(allow_null) << " HDFSFileSystem: fail to open \"" << path.str() << '\"';
   return NULL;
 }
 

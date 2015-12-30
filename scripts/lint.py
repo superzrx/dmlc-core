@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# pylint: disable=protected-access, unused-variable, locally-disabled
+# pylint: disable=protected-access, unused-variable, locally-disabled, redefined-variable-type
 """Lint helper to generate lint summary of source.
 
 Copyright by Contributors
@@ -115,8 +115,9 @@ def get_header_guard_dmlc(filename):
     file_path_from_root = fileinfo.RepositoryName()
     inc_list = ['include', 'api', 'wrapper']
 
-    if file_path_from_root.startswith('src') and _HELPER.project_name is not None:
-        file_path_from_root = re.sub('^src', _HELPER.project_name, file_path_from_root)
+    if file_path_from_root.find('src/') != -1 and _HELPER.project_name is not None:
+        idx = file_path_from_root.find('src/')
+        file_path_from_root = _HELPER.project_name +  file_path_from_root[idx + 3:]
     else:
         for spath in inc_list:
             prefix = spath + os.sep
@@ -152,10 +153,11 @@ def main():
     if file_type == 'cpp' or file_type == 'all':
         allow_type += [x for x in CXX_SUFFIX]
     allow_type = set(allow_type)
-    sys.stderr = codecs.StreamReaderWriter(sys.stderr,
-                                           codecs.getreader('utf8'),
-                                           codecs.getwriter('utf8'),
-                                           'replace')
+    if os.name != 'nt':
+        sys.stderr = codecs.StreamReaderWriter(sys.stderr,
+                                               codecs.getreader('utf8'),
+                                               codecs.getwriter('utf8'),
+                                               'replace')
     for path in sys.argv[3:]:
         if os.path.isfile(path):
             process(path, allow_type)

@@ -34,3 +34,9 @@ config.mk
 *.swp
 *.swo
 *.swn
+*.csv
+
+# Emacs
+.clang_complete
+deps
+recommonmark

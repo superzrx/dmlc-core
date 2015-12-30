@@ -136,7 +136,7 @@ class RabitTracker:
                 break
             except socket.error:
                 continue
-        sock.listen(16)
+        sock.listen(256)
         self.sock = sock
         self.hostIP = hostIP
         logging.info('start listen on %s:%d' % (hostIP, self.port))
@@ -364,7 +364,12 @@ def submit(nworker, nserver, fun_submit, hostIP = 'auto', pscmd = None):
     if hostIP == 'dns':
         hostIP = socket.getfqdn()
     elif hostIP == 'ip':
-        hostIP = socket.gethostbyname(socket.getfqdn())
+        from socket import gaierror
+        try:
+            hostIP = socket.gethostbyname(socket.getfqdn())
+        except gaierror:
+            logging.warn('gethostbyname(socket.getfqdn()) failed... trying on hostname()')
+            hostIP = socket.gethostbyname(socket.gethostname())
 
     if nserver == 0:
         pscmd = None

@@ -37,7 +37,8 @@ class ParserImpl : public Parser<IndexType> {
         }
       }
       if (!ParseNext(&data_)) break;
-      data_ptr_ = 0; data_end_ = data_.size();
+      data_ptr_ = 0;
+      data_end_ = static_cast<IndexType>(data_.size());
     }
     return false;
   }
@@ -83,7 +84,7 @@ class ThreadedParser : public ParserImpl<IndexType> {
     // stop things before base is deleted
     iter_.Destroy();
     delete base_;
-    if (tmp_ != NULL) delete tmp_;
+    delete tmp_;
   }
   virtual void BeforeFirst() {
     iter_.BeforeFirst();

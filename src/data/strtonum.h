@@ -7,6 +7,7 @@
 #define DMLC_DATA_STRTONUM_H_
 #include <cstdint>
 #include "dmlc/base.h"
+#include "dmlc/logging.h"
 
 namespace dmlc {
 namespace data {
@@ -49,20 +50,21 @@ inline float strtof(const char *nptr, char **endptr) {
   // Get digits before decimal point or exponent, if any.
   float value;
   for (value = 0; isdigit(*p); ++p) {
-    value = value * 10.0 + (*p - '0');
+    value = value * 10.0f + (*p - '0');
   }
 
   // Get digits after decimal point, if any.
   if (*p == '.') {
-    unsigned pow10 = 1;
-    unsigned val2 = 0;
+    uint64_t pow10 = 1;
+    uint64_t val2 = 0;
     ++p;
     while (isdigit(*p)) {
       val2 = val2 * 10 + (*p - '0');
       pow10 *= 10;
       ++p;
     }
-    value += static_cast<float>(val2) / static_cast<float>(pow10);
+    value += static_cast<float>(
+        static_cast<double>(val2) / static_cast<double>(pow10));
   }
 
   // Handle exponent, if any.
@@ -121,9 +123,35 @@ inline V strtoint(const char* nptr, char **endptr, int base) {
   return sign ? value : - value;
 }
 
+template <typename V>
+inline V strtouint(const char* nptr, char **endptr, int base) {
+  const char *p = nptr;
+  // Skip leading white space, if any. Not necessary
+  while (isspace(*p)) ++p;
+
+  // Get sign if any
+  bool sign = true;
+  if (*p == '-') {
+    sign = false; ++p;
+  } else if (*p == '+') {
+    ++p;
+  }
+
+  // we are parsing unsigned, so no minus sign should be found
+  CHECK_EQ(sign, true);
+
+  V value;
+  for (value = 0; isdigit(*p); ++p) {
+    value = value * base + (*p - '0');
+  }
+
+  if (endptr) *endptr = (char*)p; // NOLINT(*)
+  return value;
+}
+
 inline uint64_t
 strtoull(const char* nptr, char **endptr, int base) {
-  return strtoint<uint64_t>(nptr, endptr, base);
+  return strtouint<uint64_t>(nptr, endptr, base);
 }
 
 inline long atol(const char* p) {  // NOLINT(*)
@@ -158,7 +186,7 @@ template<>
 class Str2T<uint32_t> {
  public:
   static inline uint32_t get(const char * begin, const char * end) {
-    return strtoint<int>(begin, NULL, 10);
+    return strtouint<int>(begin, NULL, 10);
   }
 };
 
@@ -174,9 +202,10 @@ template<>
 class Str2T<uint64_t> {
  public:
   static inline uint64_t get(const char * begin, const char * end) {
-    return strtoint<uint64_t>(begin, NULL, 10);
+    return strtouint<uint64_t>(begin, NULL, 10);
   }
 };
+
 
 template<>
 class Str2T<float> {
